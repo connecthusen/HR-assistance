@@ -104,6 +104,8 @@ PyPDF text extraction
 
 Custom text splitter
 
+```
+
 📁 5. Project Structure
 HR/
 │── app.py                     # Streamlit interface
@@ -162,6 +164,8 @@ HR/
                  ┌────────────────────────┐
                  │ Streamlit Chat Output  │
                  └────────────────────────┘
+
+```
 
 ⚙️ 7. Installation & Setup
 1. Clone Repository
