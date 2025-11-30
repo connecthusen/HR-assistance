@@ -1,0 +1,10 @@
+streamlit
+pypdf
+chromadb
+google-generativeai
+python-dotenv
+tiktoken
+pandas
+langchain
+langchain-community
+#pyhthon = 3.11.+
