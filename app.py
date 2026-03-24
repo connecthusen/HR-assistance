@@ -1,11 +1,13 @@
 # app.py — HR Policy Assistant (ABC Corp)
 
 import streamlit as st
-from rag_pipeline import initialize_chroma_db, get_or_create_collection, rag_query
+from rag_pipeline import initialize_chroma_db, get_or_create_collection, rag_query, ingest_pdfs
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+PDF_FOLDER = "./data/hr_policies"
 
 # ─────────────────────────────────────────────
 # PAGE CONFIG
@@ -32,8 +34,8 @@ html, body, .stApp {
 
 /* Scrollable Container Fix: Let Streamlit scroll naturally */
 .main-scroll-container {
-    margin-top: 80px; /* Push content down so the fixed header doesn't cover it */
-    padding-bottom: 100px; /* Space at the bottom for the chat input */
+    margin-top: 80px;
+    padding-bottom: 100px;
     padding-left: 20px;
     padding-right: 20px;
     display: flex;
@@ -56,12 +58,12 @@ html, body, .stApp {
     display: flex;
     align-items: center;
     gap: 14px;
-    position: fixed; /* Changed from sticky to fixed */
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     width: 100%;
-    z-index: 9999; /* Keeps header above all scrolling content */
+    z-index: 9999;
     box-shadow: 0 2px 16px rgba(0,0,0,.3);
 }
 .hr-header-icon {
@@ -122,6 +124,27 @@ def render_bot(content: str, sources: list = None):
 def render_user(content: str):
     st.markdown(f'<div class="chat-turn user-turn"><div class="avatar user-av">👤</div><div class="bubble user-bubble">{content}</div></div>', unsafe_allow_html=True)
 
+def auto_ingest(collection):
+    """Automatically ingest PDFs if the collection is empty (first run only)."""
+    if collection.count() > 0:
+        return  # Already has data — skip
+
+    pdf_paths = [
+        os.path.join(PDF_FOLDER, f)
+        for f in os.listdir(PDF_FOLDER)
+        if f.lower().endswith(".pdf")
+    ] if os.path.isdir(PDF_FOLDER) else []
+
+    if not pdf_paths:
+        st.warning("⚠️ No PDFs found in `data/hr_policies/`. Add policy PDFs and restart.")
+        return
+
+    with st.spinner(f"📚 First-time setup: Indexing {len(pdf_paths)} policy document(s)... This takes ~30 seconds."):
+        ingest_pdfs(pdf_paths, collection)
+
+    st.success(f"✅ {len(pdf_paths)} policy document(s) indexed! Ready to answer questions.")
+    st.rerun()
+
 # ─────────────────────────────────────────────
 # HEADER
 # ─────────────────────────────────────────────
@@ -136,7 +159,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# INITIALIZATION
+# INITIALIZATION — DB + AUTO-INGEST
 # ─────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -148,6 +171,8 @@ if "collection" not in st.session_state:
         try:
             client = initialize_chroma_db()
             st.session_state.collection = get_or_create_collection(client)
+            # ── Runs automatically on first launch ──
+            auto_ingest(st.session_state.collection)
         except Exception as e:
             st.error(f"❌ Database Error: {e}")
 
@@ -159,7 +184,6 @@ st.markdown('<div class="main-scroll-container">', unsafe_allow_html=True)
 if not st.session_state.messages:
     st.info("👋 Welcome! Type your HR query below to search policy documents.")
 
-# This loop ensures the entire chat history gets rendered every time
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         render_user(msg["content"])
@@ -176,7 +200,7 @@ prompt = st.chat_input("Ask about leave, attendance...")
 if prompt:
     # 1. Append user prompt
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
+
     # 2. Generate response
     if prompt.lower() in GREETINGS:
         reply, sources = GREETING_REPLY, []
@@ -188,6 +212,6 @@ if prompt:
 
     # 3. Append assistant response
     st.session_state.messages.append({"role": "assistant", "content": reply, "sources": sources})
-    
+
     # 4. Rerun to show new messages alongside old ones
     st.rerun()
