@@ -1,0 +1,20 @@
+# Google App Engine generated folder
+appengine-generated/
+
+
+venv/
+env/
+hr/
+
+__pycache__/
+.ipynb_checkpoints/
+
+model_cache/
+*.pt
+*.pth
+*.safetensors
+
+chroma_db/
+*.sqlite3
+
+.env
