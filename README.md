@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # HR Policy Assistant — Setup Guide
 
 A RAG-powered chatbot that answers employee questions from HR policy PDFs,
@@ -68,3 +69,6 @@ Open http://localhost:8501 in your browser.
 - ChromaDB data is saved in `./chroma_db/` — keep this folder between runs.
 - Re-run `python ingest.py` only when you add new PDFs; existing chunks are skipped.
 - To reset the database, delete the `chroma_db/` folder and re-ingest.
+=======
+# HR-assistance
+>>>>>>> 66424a6ff63f01c033f72eb8d0aa129321814cad

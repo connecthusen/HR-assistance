@@ -1,5 +1,6 @@
 # Google App Engine generated folder
 appengine-generated/
+<<<<<<< HEAD
 
 
 venv/
@@ -18,3 +19,5 @@ chroma_db/
 *.sqlite3
 
 .env
+=======
+>>>>>>> 66424a6ff63f01c033f72eb8d0aa129321814cad
